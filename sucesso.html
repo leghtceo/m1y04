@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sucesso! - M1YAGENC</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="imagem/Layer 1.png" alt="M1YAGENC Logo" class="logo">
+        </header>
+
+        <main>
+            <div class="success-message">
+                <h1>Obrigado, <span id="client-name"></span>!</h1>
+                <p>Recebemos suas informações com sucesso. Em breve, um de nossos especialistas entrará em contato com você para conversarmos sobre como a M1YAGENC pode ajudar seu negócio a crescer!</p>
+            </div>
+        </main>
+
+        <footer>
+            <p class="copyright">© Copyright 2024 M1YAGENC</p>
+        </footer>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+
+        // 1. Exibir o nome do cliente na página
+        const clientName = params.get('nome');
+        const clientNameSpan = document.getElementById('client-name');
+        if (clientName && clientNameSpan) {
+            clientNameSpan.textContent = clientName.charAt(0).toUpperCase() + clientName.slice(1);
+        } else if (clientNameSpan) {
+            clientNameSpan.textContent = 'visitante';
+        }
+
+        // 2. Montar o objeto com os dados da URL
+        const payload = {
+            nome: params.get('nome'),
+            email: params.get('email'),
+            telefone: params.get('telefone') || params.get('whatsapp') || params.get('tel'),
+            faturamento: params.get('faturamento'),
+            timestamp: new Date().toLocaleString("pt-BR"),
+            segmentacao: params.get('segmento')
+        };
+
+        // Validação básica para evitar envios vazios
+        if (!payload.nome && !payload.email) {
+            console.warn('⚠️ Nome ou e-mail faltando na URL. O envio para a planilha foi cancelado.');
+            return;
+        }
+
+        // 3. Enviar os dados para o PROXY no Vercel
+        fetch("/api/proxy", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao enviar dados para o proxy.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ Dados enviados com sucesso!', data);
+        })
+        .catch(error => {
+            console.error('❌ Erro na requisição:', error);
+        });
+    });
+    </script>
+</body>
+</html>
